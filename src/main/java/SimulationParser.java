@@ -43,6 +43,8 @@ public class SimulationParser {
     private final Float apdexT;
 
     public SimulationParser(File file, Float apdexT) {
+        System.out.println("file: " + file.getName());
+        System.out.println("apdexT: " + apdexT);
         this.file = file;
         this.apdexT = apdexT;
     }
@@ -62,38 +64,52 @@ public class SimulationParser {
         long start, end;
         boolean success;
         while ((line = reader.readNext()) != null) {
+            System.out.println("line: " + line + " line.size(): " + line.size());
             if (line.size() <= 2) {
                 invalidFile();
             }
-            scenario = line.get(0);
-            switch (line.get(2)) {
+            scenario = line.get(1); //0
+            System.out.println("scenario: " + scenario + " line.get(2): " + line.get(2));
+            switch (line.get(0)) { //2
                 case RUN:
-                    String version = line.get(5);
+                    String version = line.get(6);//5
+                    System.out.println("version: " + version);
                     if (!version.startsWith("2.")) {
+                        System.out.println("Yikes!");
                         return invalidFile();
                     }
-                    ret.setSimulationName(line.get(1));
-                    ret.setStart(Long.parseLong(line.get(3)));
+                    ret.setSimulationName(line.get(3));//1
+                    ret.setStart(Long.parseLong(line.get(4))); // 3
+                    System.out.println("RUN: " + line.get(0) +
+                            " version: " + line.get(6) + " SimulationName: " + line.get(3) +
+                            " Start: " + line.get(4));
                     break;
                 case REQUEST:
-                    name = line.get(4);
-                    start = Long.parseLong(line.get(6));
-                    end = Long.parseLong(line.get(8));
-                    success = OK.equals(line.get(9));
+                    name = line.get(1);//4
+                    start = Long.parseLong(line.get(5));//6
+                    end = Long.parseLong(line.get(6));//8
+                    success = OK.equals(line.get(7));//9
                     ret.addRequest(scenario, name, start, end, success);
+                    System.out.println("REQUEST: " + line.get(2) + "name: " + line.get(1) +
+                            " start: " + line.get(5) + " end: " + line.get(6) +
+                            " success: " + line.get(7));
                     break;
                 case USER:
-                    switch (line.get(3)) {
+                    System.out.println("USER line.get(2): " + line.get(2));
+                    switch (line.get(3)) {//3
                         case START:
                             ret.addUser(scenario);
+                            System.out.println("USER START: " + line.get(2) + " switch on: " + line.get(3));
                             break;
                         case END:
                             ret.endUser(scenario);
+                            System.out.println("USER END: " + line.get(2) + " switch on: " + line.get(3));
                             break;
                     }
                     break;
             }
         }
+        System.out.println("SimulationContext ret: " + ret);
         ret.computeStat();
         return ret;
     }
